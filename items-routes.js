@@ -1,8 +1,13 @@
 const express = require('express');
-const ExpressError = require('./errors');
 const router = new express.Router();
 
 let items = require('./fakeDb');
+
+const {
+  isValidItem,
+  checkItemExists,
+  isValidPatch
+} = require('./middleware');
 
 /** Routes for items */
 
@@ -11,7 +16,7 @@ router.get('/', function (req, res) {
   return res.json(items);
 });
 
-router.post('/', function (req, res) {
+router.post('/', isValidItem, function (req, res) {
   // Should accept JSON data and add it to the shopping list.
   items.push(req.body);
   return res.json({
@@ -19,32 +24,36 @@ router.post('/', function (req, res) {
   });
 });
 
-router.get('/:name', function (req, res) {
+router.get('/:name', checkItemExists, function (req, res) {
 
   // Display a single item’s name and price.
   return res.json(res.locals.item);
 
 });
 
-router.patch('/:name', function (req, res) {
+router.patch('/:name', checkItemExists, isValidPatch, function (req, res) {
   // Modify a single item’s name and/or price.
+  let item = items[res.locals.idx];
   if (req.body.name) {
-    item.name = req.locals.item.name
+    item.name = req.body.name
+    console.log("ITEM NAME", item.name);
+    console.log("RESPONSE.LOCALS.NAME", item.name);
   };
   if (req.body.price) {
-    item.price = req.locals.item.price
+    item.price = req.body.price;
   };
+  items[res.locals.idx] = item;
   return res.json({
     updated: item
   });
 });
 
-router.delete('/:name', function (req, res) {
+router.delete('/:name', checkItemExists, function (req, res) {
   // Delete a specific item from the array.
-      items.splice(res.locals.idx, 1);
-      return res.json({
-        message: "Deleted"
-      });
+  items.splice(res.locals.idx, 1);
+  return res.json({
+    message: "Deleted"
+  });
 });
 
 

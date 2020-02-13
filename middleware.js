@@ -13,13 +13,15 @@ function isValidItem(req, res, next) {
     }
     return next();
 
-  } catch {
+  } catch(err) {
     return next(err);
   }
 }
 
 // Check if item exists 
 function checkItemExists(req, res, next) {
+  // throw new ExpressError("There are no items to delete", 400);
+  
   try {
     let idx = 0;
     for (let item of items) {
@@ -32,7 +34,7 @@ function checkItemExists(req, res, next) {
     }
 
     throw new ExpressError("Please input valid item", 400);
-  } catch {
+  } catch(err) {
     return next(err)
   }
 }
@@ -46,18 +48,25 @@ function isValidPatch(req, res, next) {
   let invalidKey = false;
 
   for (let key in updatedProps) {
-    if (key !== "name" || key !== "price") {
+    if (key !== "name" && key !== "price") {
+      console.log("KEY", key);
       invalidKey = true;
     }
   }
 
   try {
     if (!hasNameOrPrice || invalidKey) {
-      throw new ExpressError("Please input valid update", 400);
+      throw new ExpressError("Please input valid updated property", 400);
     }
     return next();
 
-  } catch {
+  } catch(err) {
     return next(err);
   }
+}
+
+module.exports = {
+  isValidItem,
+  checkItemExists,
+  isValidPatch
 }
